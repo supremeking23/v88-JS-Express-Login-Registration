@@ -7,26 +7,11 @@ class Users {
 	constructor() {}
 
 	index(req, res) {
-		res.render("index");
-	}
-
-	register(req, res) {
-		res.render("register", {
+		res.render("index", {
 			message: req.session.message != undefined ? req.session.message : undefined,
 			form_errors: req.session.form_errors != undefined ? req.session.form_errors : undefined,
 		});
 		req.session.destroy();
-	}
-
-	async findAll(req, res) {
-		try {
-			await userModel.findAll(function (err, users) {
-				if (err) res.send(err);
-
-				// res.send(users);
-				// res.send(userArr);
-			});
-		} catch (error) {}
 	}
 
 	async create(req, res) {
@@ -70,7 +55,7 @@ class Users {
 				};
 				// req.session.form_errors = form_error_array;
 				req.session.form_errors = form_error;
-				res.redirect("/register-and-login");
+				res.redirect("/");
 				return false;
 			}
 
@@ -91,7 +76,7 @@ class Users {
 						message.content = "Success, a new user has been created";
 					}
 					req.session.message = message;
-					res.redirect("/register-and-login");
+					res.redirect("/");
 				});
 			});
 		} catch (error) {
@@ -123,7 +108,7 @@ class Users {
 				};
 				// req.session.form_errors = form_error_array;
 				req.session.form_errors = form_error;
-				res.redirect("/register-and-login");
+				res.redirect("/");
 				return false;
 			}
 
@@ -135,6 +120,10 @@ class Users {
 						// result == true
 						if (result) {
 							console.log("correct credentials");
+							// console.log(user);
+							// res.send(user);
+							req.session.user = user[0];
+							res.redirect("/welcome");
 						} else {
 							console.log("wrong password");
 						}
@@ -146,7 +135,15 @@ class Users {
 		} catch (error) {}
 	}
 
-	async welcome(req, res) {}
+	async welcome(req, res) {
+		console.log(req.session.user);
+		res.render("welcome", { user: req.session.user });
+	}
+
+	logoff(req, res) {
+		req.session.destroy();
+		res.redirect("/");
+	}
 }
 
 module.exports = { Users };
