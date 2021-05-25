@@ -9,32 +9,38 @@ let user = function (user) {
 	// this.updated_at = new Date();
 };
 
-// user.create = function (newUser, callback) {
+// user.create = function (newUser) {
 // 	// MySQL-specific extension to the SQL syntax;
-// 	DBCONNECTION.query("INSERT INTO users set ?", newUser, function (err, res) {
+// 	return DBCONNECTION.query("INSERT INTO users set ?", newUser, function (err, res) {
 // 		if (err) {
-// 			console.log("error: ", err);
-// 			callback(err, null);
+// 			// console.log("error: ", err);
+// 			return err;
+// 			// callback(err, null);
 // 		} else {
-// 			console.log(res.insertId);
-// 			callback(null, res.insertId);
+// 			// console.log(res.insertId);
+// 			return res;
+// 			// callback(null, res.insertId);
 // 		}
 // 	});
 // };
 
 user.create = function (newUser) {
 	// MySQL-specific extension to the SQL syntax;
-	return DBCONNECTION.query("INSERT INTO users set ?", newUser, function (err, res) {
-		if (err) {
-			// console.log("error: ", err);
-			return err;
-			// callback(err, null);
-		} else {
-			// console.log(res.insertId);
-			return res;
-			// callback(null, res.insertId);
+	return DBCONNECTION.query(
+		"INSERT INTO users (first_name,last_name,email,password,created_at) VALUES (?,?,?,?,?)",
+		[newUser.first_name, newUser.last_name, newUser.email, newUser.password, newUser.created_at],
+		function (err, res) {
+			if (err) {
+				// console.log("error: ", err);
+				return err;
+				// callback(err, null);
+			} else {
+				// console.log(res.insertId);
+				return res;
+				// callback(null, res.insertId);
+			}
 		}
-	});
+	);
 };
 
 user.findAll = function (result) {
