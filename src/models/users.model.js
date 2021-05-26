@@ -9,21 +9,6 @@ let user = function (user) {
 	// this.updated_at = new Date();
 };
 
-// user.create = function (newUser) {
-// 	// MySQL-specific extension to the SQL syntax;
-// 	return DBCONNECTION.query("INSERT INTO users set ?", newUser, function (err, res) {
-// 		if (err) {
-// 			// console.log("error: ", err);
-// 			return err;
-// 			// callback(err, null);
-// 		} else {
-// 			// console.log(res.insertId);
-// 			return res;
-// 			// callback(null, res.insertId);
-// 		}
-// 	});
-// };
-
 user.create = function (newUser) {
 	// MySQL-specific extension to the SQL syntax;
 	return DBCONNECTION.query(

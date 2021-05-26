@@ -15,86 +15,91 @@ class Users {
 		req.session.destroy();
 	}
 
-	async create(req, res) {
-		try {
-			let form_error_array = registrationValidation(req.body, validateEmail);
+	create(req, res) {
+		let form_error_array = registrationValidation(req.body, validateEmail);
 
-			if (form_error_array.length > 0) {
-				// req.session.form_errors = form_error_array;
-				let form_error = {
-					type: "register",
-					errors: form_error_array,
-				};
-				// req.session.form_errors = form_error_array;
-				req.session.form_errors = form_error;
-				res.redirect("/");
-				return false;
-			}
-
-			bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {
-				// check if email is already exist
-				req.body.password = hash;
-				await userModel.findByEmail(req.body.email, async function (err, user) {
-					console.log(user.length);
-					let message = {};
-					if (user.length > 0) {
-						message.title = "error";
-						message.content = "Error, email already in the database";
-					} else {
-						let new_user = new userModel(req.body);
-						let create_user = await userModel.create(new_user);
-						console.log(`value ${create_user.values}`);
-						message.title = "success";
-						message.content = "Success, a new user has been created";
-					}
-					req.session.message = message;
-					res.redirect("/");
-				});
-			});
-		} catch (error) {
-			console.log(error);
+		if (form_error_array.length > 0) {
+			// req.session.form_errors = form_error_array;
+			let form_error = {
+				type: "register",
+				errors: form_error_array,
+			};
+			// req.session.form_errors = form_error_array;
+			req.session.form_errors = form_error;
+			res.redirect("/");
+			return false;
 		}
+
+		bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {
+			// check if email is already exist
+			req.body.password = hash;
+			userModel.findByEmail(req.body.email, function (err, user) {
+				console.log(user.length);
+				let message = {};
+				if (user.length > 0) {
+					message.title = "error";
+					message.content = "Error, email already in the database";
+				} else {
+					let new_user = new userModel(req.body);
+					let create_user = userModel.create(new_user);
+					console.log(`value ${create_user.values}`);
+					message.title = "success";
+					message.content = "Success, a new user has been created";
+				}
+				req.session.message = message;
+				res.redirect("/");
+			});
+		});
 	}
 
-	async login_process(req, res) {
-		try {
-			let form_error_array = loginValidation(req.body, validateEmail);
+	login_process(req, res) {
+		let form_error_array = loginValidation(req.body, validateEmail);
 
-			if (form_error_array.length > 0) {
+		if (form_error_array.length > 0) {
+			let form_error = {
+				type: "login",
+				errors: form_error_array,
+			};
+			req.session.form_errors = form_error;
+			res.redirect("/");
+			return false;
+		}
+
+		userModel.findByEmail(req.body.email, function (err, user) {
+			if (user.length > 0) {
+				//user found
+
+				bcrypt.compare(req.body.password, user[0].password, function (err, result) {
+					// result == true
+					if (result) {
+						console.log("correct credentials");
+
+						req.session.user = user[0];
+						res.redirect("/welcome");
+					} else {
+						// wrong password
+						let form_error = {
+							type: "login",
+							errors: ["Wrong Email or Password"],
+						};
+						req.session.form_errors = form_error;
+						res.redirect("/");
+						return false;
+					}
+				});
+			} else {
+				// wrong email
 				let form_error = {
 					type: "login",
-					errors: form_error_array,
+					errors: ["Wrong Email or Password"],
 				};
-
 				req.session.form_errors = form_error;
 				res.redirect("/");
-				return false;
 			}
-
-			await userModel.findByEmail(req.body.email, async function (err, user) {
-				if (user.length > 0) {
-					//user found
-
-					bcrypt.compare(req.body.password, user[0].password, function (err, result) {
-						// result == true
-						if (result) {
-							console.log("correct credentials");
-							// console.log(user);
-							// res.send(user);
-							req.session.user = user[0];
-							res.redirect("/welcome");
-						} else {
-							console.log("wrong password");
-						}
-					});
-				} else {
-					console.log("incorrect email");
-				}
-			});
-		} catch (error) {}
+		});
 	}
 
-	async welcome(req, res) {
+	welcome(req, res) {
 		console.log(req.session.user);
 		res.render("welcome", { user: req.session.user });
 	}
