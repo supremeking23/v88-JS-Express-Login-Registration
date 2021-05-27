@@ -15,5 +15,19 @@ module.exports = () => {
 				return false;
 			}
 		},
+
+		formError: (type, errors) => {
+			return {
+				type,
+				errors,
+			};
+		},
+
+		messageHandler: (title, content) => {
+			return {
+				title,
+				content,
+			};
+		},
 	};
 };

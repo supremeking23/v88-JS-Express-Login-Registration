@@ -1,5 +1,5 @@
 const userModel = require("../models/users.model");
-const { validateEmail } = require("../my_module/utilities")();
+const { validateEmail, formError, messageHandler } = require("../my_module/utilities")();
 const { registrationValidation, loginValidation } = require("../my_module/validation")();
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -19,13 +19,7 @@ class Users {
 		let form_error_array = registrationValidation(req.body, validateEmail);
 
 		if (form_error_array.length > 0) {
-			// req.session.form_errors = form_error_array;
-			let form_error = {
-				type: "register",
-				errors: form_error_array,
-			};
-			// req.session.form_errors = form_error_array;
-			req.session.form_errors = form_error;
+			req.session.form_errors = formError("register", form_error_array);
 			res.redirect("/");
 			return false;
 		}
@@ -34,17 +28,17 @@ class Users {
 			// check if email is already exist
 			req.body.password = hash;
 			userModel.findByEmail(req.body.email, function (err, user) {
-				console.log(user.length);
-				let message = {};
+				// console.log(user.length);
+				let message;
 				if (user.length > 0) {
-					message.title = "error";
-					message.content = "Error, email already in the database";
+					message = messageHandler("error", "Error, email already in the database");
+					console.log(message);
 				} else {
 					let new_user = new userModel(req.body);
 					let create_user = userModel.create(new_user);
 					console.log(`value ${create_user.values}`);
-					message.title = "success";
-					message.content = "Success, a new user has been created";
+
+					message = messageHandler("success", "User has been registered successfully");
 				}
 				req.session.message = message;
 				res.redirect("/");
@@ -56,11 +50,7 @@ class Users {
 		let form_error_array = loginValidation(req.body, validateEmail);
 
 		if (form_error_array.length > 0) {
-			let form_error = {
-				type: "login",
-				errors: form_error_array,
-			};
-			req.session.form_errors = form_error;
+			req.session.form_errors = formError("login", form_error_array);
 			res.redirect("/");
 			return false;
 		}
@@ -89,11 +79,9 @@ class Users {
 				});
 			} else {
 				// wrong email
-				let form_error = {
-					type: "login",
-					errors: ["Wrong Email or Password"],
-				};
-				req.session.form_errors = form_error;
+
+				req.session.form_errors = formError("login", ["Wrong Email or Password"]);
+
 				res.redirect("/");
 			}
 		});
