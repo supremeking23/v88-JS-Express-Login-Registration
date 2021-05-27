@@ -1,4 +1,4 @@
-const userModel = require("../models/users.model");
+const userModel = require("../models/user");
 const { validateEmail, formError, messageHandler } = require("../my_module/utilities")();
 const { registrationValidation, loginValidation } = require("../my_module/validation")();
 const bcrypt = require("bcrypt");
@@ -34,8 +34,9 @@ class Users {
 					message = messageHandler("error", "Error, email already in the database");
 					console.log(message);
 				} else {
-					let new_user = new userModel(req.body);
-					let create_user = userModel.create(new_user);
+					let user_data = userModel.userData(req.body);
+					console.log(user_data);
+					let create_user = userModel.create(user_data);
 					console.log(`value ${create_user.values}`);
 
 					message = messageHandler("success", "User has been registered successfully");
@@ -68,11 +69,7 @@ class Users {
 						res.redirect("/welcome");
 					} else {
 						// wrong password
-						let form_error = {
-							type: "login",
-							errors: ["Wrong Email or Password"],
-						};
-						req.session.form_errors = form_error;
+						req.session.form_errors = formError("login", ["Wrong Email or Password"]);
 						res.redirect("/");
 						return false;
 					}
@@ -98,7 +95,7 @@ class Users {
 	}
 }
 
-module.exports = { Users };
+module.exports = new Users();
 
 // email
 
